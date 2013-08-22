@@ -68,6 +68,12 @@ import urllib
 import urllib2
 from BeautifulSoup import BeautifulSoup
 
+class CiteFormat:
+    REFMAN = 2
+    ENDNOTE = 3
+    BIBTEX = 4
+    WENXIANWANG = 5
+
 class Article():
     """
     A class representing articles listed on Google Scholar.  The class
@@ -295,7 +301,8 @@ class ScholarQuerier():
         def handle_article(self, art):
             self.querier.add_article(art)
 
-    def __init__(self, author='', scholar_url=None, count=0, cite_format=4):
+    def __init__(self, author='', scholar_url=None, count=0,
+            cite_format=CiteFormat.BIBTEX):
         self.articles = []
         self.author = author
         self.cite_format = cite_format
@@ -428,13 +435,17 @@ A command-line interface to Google Scholar."""
     elif options.csv_header:
         csv(query, author=options.author, count=options.count, header=True)
     elif options.bibtex:
-        citation(query, author=options.author, count=options.count, cite_format=4)
+        citation(query, author=options.author, count=options.count,
+                cite_format=CiteForamt.BIBTEX)
     elif options.endnote:
-        citation(query, author=options.author, count=options.count, cite_format=3)
+        citation(query, author=options.author, count=options.count,
+                cite_format=CiteForamt.ENDNOTE)
     elif options.refman:
-        citation(query, author=options.author, count=options.count, cite_format=2)
+        citation(query, author=options.author, count=options.count,
+                cite_format=CiteFormat.REFMAN)
     elif options.wenxianwang:
-        citation(query, author=options.author, count=options.count, cite_format=5)
+        citation(query, author=options.author, count=options.count,
+                cite_format=CiteFormat.WENXIANWANG)
     else:
         txt(query, author=options.author, count=options.count)
 
