@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+ #! /usr/bin/env python2
 """
 This module provides classes for querying Google Scholar and parsing
 returned results.  It currently *only* processes the first results
@@ -81,7 +81,7 @@ class Article():
                       'url_citations': [None, 'Citations list', 4],
                       'url_versions':  [None, 'Versions list',  5],
                       'year':          [None, 'Year',           6],
-                      'url_bibtex':    [None, 'Bibtex',         7]}
+                      'url_citation':  [None, 'Citation URL',   7]}
 
     def __getitem__(self, key):
         if key in self.attrs:
@@ -186,7 +186,13 @@ class ScholarParser():
                 self.article['url_versions'] = self._path2url(tag.get('href'))
 
             if tag.get('href').startswith('/scholar.bib?'):
-                self.article['url_bibtex'] = self._path2url(tag.get('href'))
+                self.article['url_citation'] = self._path2url(tag.get('href'))
+            if tag.get('href').startswith('/scholar.enw?'):
+                self.article['url_citation'] = self._path2url(tag.get('href'))
+            if tag.get('href').startswith('/scholar.ris?'):
+                self.article['url_citation'] = self._path2url(tag.get('href'))
+            if tag.get('href').startswith('/scholar.ral?'):
+                self.article['url_citation'] = self._path2url(tag.get('href'))
 
     @staticmethod
     def _tag_checker(tag):
@@ -289,9 +295,10 @@ class ScholarQuerier():
         def handle_article(self, art):
             self.querier.add_article(art)
 
-    def __init__(self, author='', scholar_url=None, count=0):
+    def __init__(self, author='', scholar_url=None, count=0, cite_format=4):
         self.articles = []
         self.author = author
+        self.cite_format = cite_format
         # Clip to 100, as Google doesn't support more anyway
         self.count = min(count, 100)
 
@@ -309,7 +316,7 @@ class ScholarQuerier():
         response.
         """
         url = self.scholar_url % {'query': urllib.quote(search.encode('utf-8')), 'author': urllib.quote(self.author)}
-        headers={'User-Agent': self.UA, 'Cookie' : 'GSP=ID=%s:CF=4' % self.GID }
+        headers={'User-Agent': self.UA, 'Cookie' : 'GSP=ID=%(ID)s:CF=%(CF)d' % {"ID" : self.GID, "CF" : self.cite_format}}
         req = urllib2.Request(url=url, headers=headers)
         hdl = urllib2.urlopen(req)
         html = hdl.read()
@@ -325,12 +332,12 @@ class ScholarQuerier():
     def add_article(self, art):
         self.articles.append(art)
 
-    def get_bibtex(self, art):
-        headers={'User-Agent': self.UA, 'Cookie' : 'GSP=ID=%s:CF=4' % self.GID }
-        req = urllib2.Request(url=art['url_bibtex'], headers=headers)
+    def get_citation(self, art):
+        headers={'User-Agent': self.UA, 'Cookie' : 'GSP=ID=%(ID)s:CF=%(CF)d' % { "ID" : self.GID, "CF" : self.cite_format } }
+        req = urllib2.Request(url=art['url_citation'], headers=headers)
         hdl = urllib2.urlopen(req)
-        bibtex = hdl.read()
-        return bibtex
+        citation = hdl.read()
+        return citation
 
 
 def txt(query, author, count):
@@ -353,15 +360,15 @@ def csv(query, author, count, header=False, sep='|'):
         print result.encode('utf-8')
         header = False
 
-def bibtex(query, author, count):
+def citation(query, author, count, cite_format):
     # fake google id
-    querier = ScholarQuerier(author=author, count=count)
+    querier = ScholarQuerier(author=author, count=count, cite_format=cite_format)
     querier.query(query)
     articles = querier.articles
     if count > 0:
         articles = articles[:count]
     for art in articles:
-        print querier.get_bibtex(art)
+        print querier.get_citation(art)
 
 
 def url(title, author):
@@ -399,6 +406,12 @@ A command-line interface to Google Scholar."""
                       help='Print article data in text format')
     parser.add_option('--bibtex', action='store_true',
                       help='Print article data in bibtex format')
+    parser.add_option('--endnote', action='store_true',
+                      help='Print article data in endnote format')
+    parser.add_option('--refman', action='store_true',
+                      help='Print article data in refman format')
+    parser.add_option('--wenxianwang', action='store_true',
+                      help='Print article data in wenxianwang format')
     parser.add_option('-c', '--count', type='int',
                       help='Maximum number of results')
     parser.set_defaults(count=0, author='')
@@ -415,7 +428,13 @@ A command-line interface to Google Scholar."""
     elif options.csv_header:
         csv(query, author=options.author, count=options.count, header=True)
     elif options.bibtex:
-        bibtex(query, author=options.author, count=options.count)
+        citation(query, author=options.author, count=options.count, cite_format=4)
+    elif options.endnote:
+        citation(query, author=options.author, count=options.count, cite_format=3)
+    elif options.refman:
+        citation(query, author=options.author, count=options.count, cite_format=2)
+    elif options.wenxianwang:
+        citation(query, author=options.author, count=options.count, cite_format=5)
     else:
         txt(query, author=options.author, count=options.count)
 
