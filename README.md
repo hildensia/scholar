@@ -11,4 +11,4 @@ How to download a paper?
 
 Simply use the power of the shell:
 
-wget $(python2 scholar.py "<SEARCHTERMS>" -c 1 | grep "URL" | sed "s/ *URL //")
+wget $(python2 scholar.py "\<SEARCHTERMS\>" -c 1 | grep "URL" | sed "s/ *URL //")
