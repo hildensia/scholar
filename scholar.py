@@ -68,17 +68,21 @@ import urllib
 import urllib2
 from BeautifulSoup import BeautifulSoup
 
+
 class CiteFormat:
     REFMAN = 2
     ENDNOTE = 3
     BIBTEX = 4
     WENXIANWANG = 5
 
+
 class Article():
+
     """
     A class representing articles listed on Google Scholar.  The class
     provides basic dictionary-like behavior.
     """
+
     def __init__(self):
         self.attrs = {'title':         [None, 'Title',          0],
                       'url':           [None, 'URL',            1],
@@ -114,16 +118,18 @@ class Article():
 
     def as_csv(self, header=False, sep='|'):
         # Get keys sorted in specified order:
-        keys = [pair[0] for pair in \
-                    sorted([(key, val[2]) for key, val in self.attrs.items()],
-                           key=lambda pair: pair[1])]
+        keys = [pair[0] for pair in
+                sorted([(key, val[2]) for key, val in self.attrs.items()],
+                       key=lambda pair: pair[1])]
         res = []
         if header:
             res.append(sep.join(keys))
         res.append(sep.join([unicode(self.attrs[key][0]) for key in keys]))
         return '\n'.join(res)
 
+
 class ScholarParser():
+
     """
     ScholarParser can parse HTML document strings obtained from Google
     Scholar. It invokes the handle_article() callback on each article
@@ -176,7 +182,7 @@ class ScholarParser():
         for tag in span:
             if not hasattr(tag, 'name'):
                 continue
-            if tag.name != 'a' or tag.get('href') == None:
+            if tag.name != 'a' or tag.get('href') is None:
                 continue
 
             if tag.get('href').startswith('/scholar?cites'):
@@ -219,7 +225,9 @@ class ScholarParser():
             path = '/' + path
         return self.site + path
 
+
 class ScholarParser120201(ScholarParser):
+
     """
     This class reflects update to the Scholar results page layout that
     Google recently.
@@ -246,7 +254,9 @@ class ScholarParser120201(ScholarParser):
         if self.article['title']:
             self.handle_article(self.article)
 
+
 class ScholarParser120726(ScholarParser):
+
     """
     This class reflects update to the Scholar results page layout that
     Google made 07/26/12.
@@ -260,22 +270,24 @@ class ScholarParser120726(ScholarParser):
                 continue
 
             if tag.name == 'div' and tag.get('class') == 'gs_ri':
-              if tag.a:
-                self.article['title'] = ''.join(tag.a.findAll(text=True))
-                self.article['url'] = self._path2url(tag.a['href'])
+                if tag.a:
+                    self.article['title'] = ''.join(tag.a.findAll(text=True))
+                    self.article['url'] = self._path2url(tag.a['href'])
 
-              if tag.find('div', {'class': 'gs_a'}):
-                year = self.year_re.findall(tag.find('div', {'class': 'gs_a'}).text)
-                self.article['year'] = year[0] if len(year) > 0 else None
+                if tag.find('div', {'class': 'gs_a'}):
+                    year = self.year_re.findall(
+                        tag.find('div', {'class': 'gs_a'}).text)
+                    self.article['year'] = year[0] if len(year) > 0 else None
 
-              if tag.find('div', {'class': 'gs_fl'}):
-                self._parse_links(tag.find('div', {'class': 'gs_fl'}))
+                if tag.find('div', {'class': 'gs_fl'}):
+                    self._parse_links(tag.find('div', {'class': 'gs_fl'}))
 
         if self.article['title']:
             self.handle_article(self.article)
 
 
 class ScholarQuerier():
+
     """
     ScholarQuerier instances can conduct a search on Google Scholar
     with subsequent parsing of the resulting HTML content.  The
@@ -294,6 +306,7 @@ class ScholarQuerier():
     UA = 'Mozilla/5.0 (X11; U; FreeBSD i386; en-US; rv:1.9.2.9) Gecko/20100913 Firefox/3.6.9'
 
     class Parser(ScholarParser120726):
+
         def __init__(self, querier):
             ScholarParser.__init__(self)
             self.querier = querier
@@ -302,7 +315,7 @@ class ScholarQuerier():
             self.querier.add_article(art)
 
     def __init__(self, author='', scholar_url=None, count=0,
-            cite_format=CiteFormat.BIBTEX):
+                 cite_format=CiteFormat.BIBTEX):
         self.articles = []
         self.author = author
         self.cite_format = cite_format
@@ -322,8 +335,16 @@ class ScholarQuerier():
         This method initiates a query with subsequent parsing of the
         response.
         """
-        url = self.scholar_url % {'query': urllib.quote(search.encode('utf-8')), 'author': urllib.quote(self.author)}
-        headers={'User-Agent': self.UA, 'Cookie' : 'GSP=ID=%(ID)s:CF=%(CF)d' % {"ID" : self.GID, "CF" : self.cite_format}}
+        url = self.scholar_url % {'query': urllib.quote(
+            search.encode('utf-8')), 'author': urllib.quote(self.author)}
+
+        headers = {
+            'User-Agent': self.UA,
+            'Cookie': 'GSP=ID=%(ID)s:CF=%(CF)d' % {
+                "ID": self.GID,
+                "CF": self.cite_format
+            }
+        }
         req = urllib2.Request(url=url, headers=headers)
         hdl = urllib2.urlopen(req)
         html = hdl.read()
@@ -340,7 +361,13 @@ class ScholarQuerier():
         self.articles.append(art)
 
     def get_citation(self, art):
-        headers={'User-Agent': self.UA, 'Cookie' : 'GSP=ID=%(ID)s:CF=%(CF)d' % { "ID" : self.GID, "CF" : self.cite_format } }
+        headers = {
+            'User-Agent': self.UA,
+            'Cookie': 'GSP=ID=%(ID)s:CF=%(CF)d' % {
+                "ID": self.GID,
+                "CF": self.cite_format
+            }
+        }
         req = urllib2.Request(url=art['url_citation'], headers=headers)
         hdl = urllib2.urlopen(req)
         citation = hdl.read()
@@ -356,6 +383,7 @@ def txt(query, author, count):
     for art in articles:
         print art.as_txt() + '\n'
 
+
 def csv(query, author, count, header=False, sep='|'):
     querier = ScholarQuerier(author=author, count=count)
     querier.query(query)
@@ -367,9 +395,11 @@ def csv(query, author, count, header=False, sep='|'):
         print result.encode('utf-8')
         header = False
 
+
 def citation(query, author, count, cite_format):
     # fake google id
-    querier = ScholarQuerier(author=author, count=count, cite_format=cite_format)
+    querier = ScholarQuerier(
+        author=author, count=count, cite_format=cite_format)
     querier.query(query)
     articles = querier.articles
     if count > 0:
@@ -387,14 +417,16 @@ def url(title, author):
             return article['url'], article['year']
     return None, None
 
+
 def titles(author):
     querier = ScholarQuerier(author=author)
     querier.query('')
     articles = querier.articles
     titles = []
     for article in articles:
-      titles.append(article['title'])
+        titles.append(article['title'])
     return titles
+
 
 def main():
     usage = """scholar.py [options] <query string>
