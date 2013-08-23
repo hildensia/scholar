@@ -468,16 +468,16 @@ A command-line interface to Google Scholar."""
         csv(query, author=options.author, count=options.count, header=True)
     elif options.bibtex:
         citation(query, author=options.author, count=options.count,
-                cite_format=CiteForamt.BIBTEX)
+                 cite_format=CiteFormat.BIBTEX)
     elif options.endnote:
         citation(query, author=options.author, count=options.count,
-                cite_format=CiteForamt.ENDNOTE)
+                 cite_format=CiteFormat.ENDNOTE)
     elif options.refman:
         citation(query, author=options.author, count=options.count,
-                cite_format=CiteFormat.REFMAN)
+                 cite_format=CiteFormat.REFMAN)
     elif options.wenxianwang:
         citation(query, author=options.author, count=options.count,
-                cite_format=CiteFormat.WENXIANWANG)
+                 cite_format=CiteFormat.WENXIANWANG)
     else:
         txt(query, author=options.author, count=options.count)
 
