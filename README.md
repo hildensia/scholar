@@ -17,4 +17,4 @@ The default of scholar is to fake a google id. Unfortunately that yields a ```40
 
 Simply use the power of the shell:
 
-wget $(python2 scholar.py "\<SEARCHTERMS\>" -c 1 | grep "^ *URL" | sed "s/ *URL //")
+wget $(python2 scholar.py "\<SEARCHTERMS\>" -c 1 | grep "^ *PDF" | sed "s/ *PDF //")
