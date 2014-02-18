@@ -207,9 +207,7 @@ class ScholarParser():
             if tag.get('href').startswith('/scholar.ral?'):
                 self.article['url_citation'] = self._path2url(tag.get('href'))
 
-            if tag.get('href').endswith('pdf'):
-                self.article['pdf'] = self._path2url(tag.get('href'))
-            if tag.get('href').endswith('PDF'):
+            if tag.get('href').lower().endswith('pdf'):
                 self.article['pdf'] = self._path2url(tag.get('href'))
 
     @staticmethod
