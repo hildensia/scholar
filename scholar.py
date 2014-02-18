@@ -91,7 +91,8 @@ class Article():
                       'url_citations': [None, 'Citations list', 4],
                       'url_versions':  [None, 'Versions list',  5],
                       'year':          [None, 'Year',           6],
-                      'url_citation':  [None, 'Citation URL',   7]}
+                      'url_citation':  [None, 'Citation URL',   7],
+                      'pdf':           [None, 'PDF',            8]}
 
     def __getitem__(self, key):
         if key in self.attrs:
@@ -206,6 +207,11 @@ class ScholarParser():
             if tag.get('href').startswith('/scholar.ral?'):
                 self.article['url_citation'] = self._path2url(tag.get('href'))
 
+            if tag.get('href').endswith('pdf'):
+                self.article['pdf'] = self._path2url(tag.get('href'))
+            if tag.get('href').endswith('PDF'):
+                self.article['pdf'] = self._path2url(tag.get('href'))
+
     @staticmethod
     def _tag_checker(tag):
         if tag.name == 'div' and tag.get('class') == 'gs_r':
@@ -248,7 +254,8 @@ class ScholarParser120201(ScholarParser):
                 year = self.year_re.findall(tag.text)
                 self.article['year'] = year[0] if len(year) > 0 else None
 
-            if tag.name == 'div' and tag.get('class') == 'gs_fl':
+            if tag.name == 'div' and (tag.get('class') == 'gs_fl' or 
+                                      tag.get('class') == 'gs_md_wp'):
                 self._parse_links(tag)
 
         if self.article['title']:
@@ -281,6 +288,10 @@ class ScholarParser120726(ScholarParser):
 
                 if tag.find('div', {'class': 'gs_fl'}):
                     self._parse_links(tag.find('div', {'class': 'gs_fl'}))
+
+            if tag.find('div', {'class': 'gs_md_wp gs_ttss'}):
+                print "HERE"
+                self._parse_links(tag.find('div', {'class': 'gs_md_wp gs_ttss'}))
 
         if self.article['title']:
             self.handle_article(self.article)
