@@ -253,7 +253,7 @@ class ScholarParser120201(ScholarParser):
                 self.article['year'] = year[0] if len(year) > 0 else None
 
             if tag.name == 'div' and (tag.get('class') == 'gs_fl' or 
-                                      tag.get('class') == 'gs_md_wp'):
+                                      tag.get('class') == 'gs_md_wp gs_ttss'):
                 self._parse_links(tag)
 
         if self.article['title']:
@@ -288,7 +288,6 @@ class ScholarParser120726(ScholarParser):
                     self._parse_links(tag.find('div', {'class': 'gs_fl'}))
 
             if tag.find('div', {'class': 'gs_md_wp gs_ttss'}):
-                print "HERE"
                 self._parse_links(tag.find('div', {'class': 'gs_md_wp gs_ttss'}))
 
         if self.article['title']:
